@@ -33,7 +33,6 @@ def preprocess_tf(image):
     image = np.expand_dims(image, axis=0)
     return image
 
-# Class labels
 # Load ImageNet class labels manually
 imagenet_classes_path = "https://raw.githubusercontent.com/pytorch/hub/master/imagenet_classes.txt"
 import requests
@@ -41,7 +40,6 @@ import requests
 response = requests.get(imagenet_classes_path)
 imagenet_classes = response.text.splitlines()
 imagenet_classes = {idx: label for idx, label in enumerate(imagenet_classes)}
-
 
 def predict_pytorch(image):
     input_tensor = preprocess_pytorch(image)
@@ -61,11 +59,10 @@ def predict_tf(image):
     predictions = tf_model.predict(input_tensor)
     class_labels = tf.keras.applications.mobilenet_v2.decode_predictions(predictions, top=5)  # Get top 5
 
-    results = []
-    for entry in class_labels[0]:  # Properly iterate over decoded predictions
-        _, label, confidence = entry  # Ensure only three elements are unpacked
-        results.append({"label": label, "confidence": float(confidence)})
-
+    results = [
+        {"label": label, "confidence": float(confidence)}
+        for (_, label, confidence) in class_labels[0]
+    ]
     return results
 
 @app.route('/')
@@ -91,4 +88,5 @@ def predict():
     return jsonify(results)
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)
