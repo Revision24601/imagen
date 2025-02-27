@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Classifier</title>
+</head>
+<body>
+    <h2>Upload an Image for Classification</h2>
+    <form id="upload-form" enctype="multipart/form-data">
+        <input type="file" id="file" name="file" accept="image/*" required>
+        <select id="model" name="model">
+            <option value="pytorch">PyTorch (ResNet50)</option>
+            <option value="tensorflow">TensorFlow (MobileNetV2)</option>
+        </select>
+        <button type="submit">Classify</button>
+    </form>
+    <h3 id="result"></h3>
+
+    <script>
+        document.getElementById("upload-form").onsubmit = async function(event) {
+            event.preventDefault();
+            let formData = new FormData();
+            formData.append("file", document.getElementById("file").files[0]);
+            formData.append("model", document.getElementById("model").value);
+        
+            let response = await fetch("/predict", { method: "POST", body: formData });
+            let results = await response.json();
+        
+            let resultText = "<h3>Top Predictions:</h3><ul>";
+            results.forEach(prediction => {
+                resultText += `<li>${prediction.label}: ${prediction.confidence.toFixed(2)}</li>`;
+            });
+            resultText += "</ul>";
+        
+            document.getElementById("result").innerHTML = resultText;
+        };        
+    </script>
+</body>
+</html>
